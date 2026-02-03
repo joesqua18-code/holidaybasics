@@ -1,0 +1,250 @@
+[
+  {
+    "code": "0010",
+    "name": "Carry Over Hats"
+  },
+  {
+    "code": "0011",
+    "name": "Carry Over Stockings"
+  },
+  {
+    "code": "0012",
+    "name": "Carry Over Tree Skirts"
+  },
+  {
+    "code": "0013",
+    "name": "Carry Over Table Runners"
+  },
+  {
+    "code": "0014",
+    "name": "Carry Over Trees"
+  },
+  {
+    "code": "0015",
+    "name": "Carry Over Pre-Deco Pine"
+  },
+  {
+    "code": "0016",
+    "name": "Carry Over Lights"
+  },
+  {
+    "code": "0017",
+    "name": "Carry Over Bows"
+  },
+  {
+    "code": "0018",
+    "name": "Carry Over Ribbon"
+  },
+  {
+    "code": "0019",
+    "name": "Carry Over Mesh"
+  },
+  {
+    "code": "0021",
+    "name": "Carry Over Plush"
+  },
+  {
+    "code": "0022",
+    "name": "Carry Over Gel Clings"
+  },
+  {
+    "code": "0023",
+    "name": "Carry Over Commodities"
+  },
+  {
+    "code": "0024",
+    "name": "Carry Over Gift Box"
+  },
+  {
+    "code": "0025",
+    "name": "Carry Over Tissue Paper"
+  },
+  {
+    "code": "0030",
+    "name": "Carry Over Red Ornaments"
+  },
+  {
+    "code": "0031",
+    "name": "Carry Over Silver Ornaments"
+  },
+  {
+    "code": "0032",
+    "name": "Carry Over Gold Ornaments"
+  },
+  {
+    "code": "0033",
+    "name": "Carry Over Purple Ornaments"
+  },
+  {
+    "code": "0034",
+    "name": "Carry Over Light Blue Ornaments"
+  },
+  {
+    "code": "0035",
+    "name": "Carry Over Tinsel Garland"
+  },
+  {
+    "code": "0036",
+    "name": "Carry Over Packaged Sets"
+  },
+  {
+    "code": "0037",
+    "name": "Carry Over Shatterproof Garland"
+  },
+  {
+    "code": "0038",
+    "name": "Carry Over Shatterproof Wreath"
+  },
+  {
+    "code": "0039",
+    "name": "Carry Over Picks"
+  },
+  {
+    "code": "0040",
+    "name": "Carry Over Clip-On"
+  },
+  {
+    "code": "0099",
+    "name": "MISC"
+  },
+  {
+    "code": "10",
+    "name": "Soft Goods"
+  },
+  {
+    "code": "14",
+    "name": "Trees"
+  },
+  {
+    "code": "15",
+    "name": "Basic Pine"
+  },
+  {
+    "code": "16",
+    "name": "Light Sets"
+  },
+  {
+    "code": "21",
+    "name": "Plush"
+  },
+  {
+    "code": "22",
+    "name": "Commodities"
+  },
+  {
+    "code": "24",
+    "name": "Gift Boxes"
+  },
+  {
+    "code": "25",
+    "name": "Tissue Paper"
+  },
+  {
+    "code": "27",
+    "name": "Bows"
+  },
+  {
+    "code": "28",
+    "name": "Bows"
+  },
+  {
+    "code": "29",
+    "name": "Ribbon"
+  },
+  {
+    "code": "30",
+    "name": "Ornaments"
+  },
+  {
+    "code": "31",
+    "name": "Garland"
+  },
+  {
+    "code": "32",
+    "name": "Packaged Sets"
+  },
+  {
+    "code": "33",
+    "name": "Shatterproof Wreaths"
+  },
+  {
+    "code": "34",
+    "name": "Shatterproof Garland"
+  },
+  {
+    "code": "35",
+    "name": "Clip-On Flowers"
+  },
+  {
+    "code": "36",
+    "name": "Picks"
+  },
+  {
+    "code": "37",
+    "name": "Long-Stem Flowers"
+  },
+  {
+    "code": "40",
+    "name": "Tabletop D\u00e9cor"
+  },
+  {
+    "code": "41",
+    "name": "Pre-Deco Pine Theme"
+  },
+  {
+    "code": "42",
+    "name": "Jumbo Bells"
+  },
+  {
+    "code": "43",
+    "name": "Jumbo Ornaments"
+  },
+  {
+    "code": "50",
+    "name": "Bushes"
+  },
+  {
+    "code": "GEMX",
+    "name": "Gemex Program"
+  },
+  {
+    "code": "PG",
+    "name": "Pepe Ganga"
+  },
+  {
+    "code": "SG1",
+    "name": "Single-Stem Flowers"
+  },
+  {
+    "code": "SG2",
+    "name": "Flower Bushes"
+  },
+  {
+    "code": "SG3",
+    "name": "Flower Bundles"
+  },
+  {
+    "code": "SG4",
+    "name": "Greenery Stems"
+  },
+  {
+    "code": "SG5",
+    "name": "Potted Flowers"
+  },
+  {
+    "code": "SG6",
+    "name": "Floral Garland"
+  },
+  {
+    "code": "SG7",
+    "name": "Single Orchid Stem"
+  },
+  {
+    "code": "SG8",
+    "name": "Potted Trees"
+  },
+  {
+    "code": "Z",
+    "name": "Inactive"
+  }
+]

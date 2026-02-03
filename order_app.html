@@ -638,21 +638,21 @@
                     <div class="form-group">
                         <label class="form-label">Select Catalog</label>
                         <select id="dataSource" class="form-select" onchange="loadData()">
-                            <option value="products.json" data-images="Holiday%20Basics%20Images/" data-ext=".jpg" data-catalog="main">Holiday Basics Products</option>
+                            <option value="data/products.json" data-images="images/" data-ext=".jpg" data-catalog="main">Holiday Basics Products</option>
                         </select>
                     </div>
                     <div class="form-group" style="margin-top: 10px;">
-                        <button class="btn-share" onclick="copyShareLink()" style="width: 100%; padding: 8px; background: #38a169; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Copy Share Link</button>
-                    </div>
-                    <div class="form-group" style="margin-top: 8px;">
-                        <button class="btn-generate" onclick="showCustomerLinkModal()">Generate Customer Link</button>
+                        <label class="form-label">Filter by Category</label>
+                        <select id="categoryFilter" class="form-select" onchange="renderProducts()">
+                            <option value="">All Categories</option>
+                        </select>
                     </div>
                 </div>
             </div>
 
             <!-- Filters -->
             <div class="section">
-                <div class="section-header" onclick="toggleSection(this)">Filters</div>
+                <div class="section-header" onclick="toggleSection(this)">Advanced Filters</div>
                 <div class="section-body">
                     <div id="filterContainer"></div>
                     <button class="btn-add-filter" onclick="addFilter()">+ Add Filter</button>
@@ -679,7 +679,7 @@
                             <option value="DESC">Description</option>
                             <option value="CATEGORY">Category</option>
                             <option value="LOT">Case Pack</option>
-                            <option value="QOH_CASES">Quantity on Hand</option>
+                            <option value="QOH">Quantity on Hand</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -826,7 +826,7 @@
         let allProducts = [];
         let filteredProducts = [];
         let order = {};
-        let currentImagePath = 'Holiday%20Basics%20Images/';
+        let currentImagePath = 'images/';
         let currentImageExt = '.jpg';
 
         // Utility Functions
@@ -982,7 +982,7 @@
             try {
                 const select = document.getElementById('dataSource');
                 const selectedOption = select.options[select.selectedIndex];
-                currentImagePath = selectedOption.dataset.images || 'Holiday%20Basics%20Images/';
+                currentImagePath = selectedOption.dataset.images || 'images/';
                 currentImageExt = selectedOption.dataset.ext || '.jpg';
 
                 const response = await fetch(select.value);
@@ -1001,6 +1001,7 @@
                 allProducts.forEach(p => { if (p.DESC) p.BRAND = p.DESC.split(' ')[0]; });
                 filteredProducts = [...allProducts];
                 order = {}; // Clear order when switching catalogs
+                populateCategoryFilter();
                 renderProducts();
                 showToast(`Loaded ${allProducts.length} products from ${selectedOption.text}`, 'success');
             } catch (err) {
@@ -1009,16 +1010,17 @@
             }
         }
 
-        function copyShareLink() {
-            const select = document.getElementById('dataSource');
-            const selectedOption = select.options[select.selectedIndex];
-            const catalog = selectedOption.dataset.catalog;
-            const url = `${window.location.origin}${window.location.pathname}?catalog=${catalog}`;
-            navigator.clipboard.writeText(url).then(() => {
-                showToast('Share link copied to clipboard!', 'success');
-            }).catch(() => {
-                // Fallback for older browsers
-                prompt('Copy this link:', url);
+        function populateCategoryFilter() {
+            const categorySelect = document.getElementById('categoryFilter');
+            const categories = [...new Set(allProducts.map(p => p.CATEGORY))].sort();
+
+            categorySelect.innerHTML = '<option value="">All Categories</option>';
+            categories.forEach(cat => {
+                const count = allProducts.filter(p => p.CATEGORY === cat).length;
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = `${cat} (${count})`;
+                categorySelect.appendChild(option);
             });
         }
 
@@ -1027,9 +1029,9 @@
             { id: 'DESC', label: 'Description' },
             { id: 'CATEGORY', label: 'Category' },
             { id: 'CATEGORY_CODE', label: 'Category Code' },
-            { id: 'UPC_SKU_2', label: 'UPC' },
+            { id: 'UPC', label: 'UPC' },
             { id: 'LOT', label: 'Case Pack' },
-            { id: 'QOH_CASES', label: 'Qty on Hand' }
+            { id: 'QOH', label: 'Qty on Hand' }
         ];
 
         function addFilter() {
@@ -1088,13 +1090,21 @@
             const sortBy = document.getElementById('sortBy').value;
             const sortOrder = document.getElementById('sortOrder').value;
             const groupBy = document.getElementById('groupBy').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
 
             let products = [...filteredProducts];
+
+            // Apply category filter
+            if (categoryFilter) {
+                products = products.filter(p => p.CATEGORY === categoryFilter);
+            }
+
+            // Apply search
             if (search) {
                 products = products.filter(p =>
                     (p.STYLE || '').toLowerCase().includes(search) ||
                     (p.DESC || '').toLowerCase().includes(search) ||
-                    (p.UPC_SKU_2 || '').includes(search)
+                    (p.UPC || '').includes(search)
                 );
             }
             if (sortBy) products = sortData(products, sortBy, sortOrder);
@@ -1136,8 +1146,8 @@
             if (showCategory && p.CATEGORY) details += `<div class="label">Category</div><div class="value">${p.CATEGORY}</div>`;
             if (showSize && p.SIZE) details += `<div class="label">Size</div><div class="value">${p.SIZE}</div>`;
             if (showLot && p.LOT) details += `<div class="label">Pack</div><div class="value">${p.LOT}</div>`;
-            if (showUPC && p.UPC_SKU_2) details += `<div class="label">UPC</div><div class="value">${(p.UPC_SKU_2||'').replace("'","")}</div>`;
-            if (showQOH) details += `<div class="label">Stock</div><div class="value">${p.QOH_CASES || 0}</div>`;
+            if (showUPC && p.UPC) details += `<div class="label">UPC</div><div class="value">${(p.UPC||'').replace("'","")}</div>`;
+            if (showQOH) details += `<div class="label">Stock</div><div class="value">${p.QOH || 0}</div>`;
 
             return `
                 <div class="product-card ${qty > 0 ? 'has-qty' : ''}">
@@ -1229,7 +1239,7 @@
             Object.keys(order).forEach(style => {
                 const p = allProducts.find(x => x.STYLE === style);
                 if (p) {
-                    csv += `"${name}","${id}","${style}","${(p.DESC||'').replace(/"/g,'""')}","${p.CATEGORY||''}",${p.LOT||1},${order[style]},"${p.UPC_SKU_2||''}"\n`;
+                    csv += `"${name}","${id}","${style}","${(p.DESC||'').replace(/"/g,'""')}","${p.CATEGORY||''}",${p.LOT||1},${order[style]},"${p.UPC||''}"\n`;
                 }
             });
             const blob = new Blob([csv], { type: 'text/csv' });
@@ -1530,7 +1540,7 @@
                 }
 
                 const selectedOption = select.options[select.selectedIndex];
-                currentImagePath = selectedOption.dataset.images || 'Holiday%20Basics%20Images/';
+                currentImagePath = selectedOption.dataset.images || 'images/';
                 currentImageExt = selectedOption.dataset.ext || '.jpg';
 
                 const response = await fetch(select.value);
@@ -1557,6 +1567,9 @@
 
                 allProducts = products;
                 filteredProducts = [...allProducts];
+
+                // Populate category filter
+                populateCategoryFilter();
 
                 // Load saved order from localStorage
                 loadSavedOrder();
