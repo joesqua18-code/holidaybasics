@@ -639,8 +639,8 @@
                     <div class="form-group">
                         <label class="form-label">Select Catalog</label>
                         <select id="dataSource" class="form-select" onchange="loadData()">
-                            <option value="../data/products.csv" data-images="../images/" data-ext=".jpg" data-catalog="main">Main Products</option>
-                            <option value="../data/french_products.csv" data-images="../images/french/" data-ext=".JPG" data-catalog="french">French Products</option>
+                            <option value="../data/products.csv" data-images="../public/images/Holiday Basics Images/" data-ext=".jpg" data-catalog="main">Main Products</option>
+                            <option value="../data/french_products.csv" data-images="../public/images/french/" data-ext=".JPG" data-catalog="french">French Products</option>
                         </select>
                     </div>
                     <div class="form-group" style="margin-top: 10px;">
@@ -828,7 +828,7 @@
         let allProducts = [];
         let filteredProducts = [];
         let order = {};
-        let currentImagePath = '../images/';
+        let currentImagePath = '../public/images/Holiday Basics Images/';
         let currentImageExt = '.jpg';
 
         document.addEventListener('DOMContentLoaded', function() {
