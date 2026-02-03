@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liberty Distributors - Order Taking</title>
-    <script src="../js/shared_utils.js"></script>
+    <title>Holiday Basics - Order Form</title>
     <style>
         :root {
             --primary: #1b3a6d;
@@ -619,8 +618,8 @@
 <body>
     <div class="header">
         <div class="header-left">
-            <a href="../index.html" class="app-home-btn">Order Form</a>
-            <span class="header-version">v1.6.0 - 1/30/26 11:15 PM EST</span>
+            <span class="app-home-btn" style="cursor: default;">Holiday Basics - Order Form</span>
+            <span class="header-version">v2.0.0</span>
         </div>
         <div class="header-right">
             <div class="nav-user">
@@ -639,8 +638,7 @@
                     <div class="form-group">
                         <label class="form-label">Select Catalog</label>
                         <select id="dataSource" class="form-select" onchange="loadData()">
-                            <option value="../data/products.csv" data-images="../images/" data-ext=".jpg" data-catalog="main">Main Products</option>
-                            <option value="../data/french_products.csv" data-images="../images/french/" data-ext=".JPG" data-catalog="french">French Products</option>
+                            <option value="products.json" data-images="Holiday Basics Images/" data-ext=".jpg" data-catalog="main">Holiday Basics Products</option>
                         </select>
                     </div>
                     <div class="form-group" style="margin-top: 10px;">
@@ -679,7 +677,8 @@
                             <option value="">No Sorting</option>
                             <option value="STYLE">Style</option>
                             <option value="DESC">Description</option>
-                            <option value="PRICE_CS">Price (Case)</option>
+                            <option value="CATEGORY">Category</option>
+                            <option value="LOT">Case Pack</option>
                             <option value="QOH_CASES">Quantity on Hand</option>
                         </select>
                     </div>
@@ -697,12 +696,11 @@
             <div class="section">
                 <div class="section-header" onclick="toggleSection(this)">Display Fields</div>
                 <div class="section-body">
-                    <label class="checkbox-option"><input type="checkbox" id="showPrice" checked onchange="renderProducts()"> Case Price</label>
-                    <label class="checkbox-option"><input type="checkbox" id="showEachPrice" checked onchange="renderProducts()"> Each Price</label>
                     <label class="checkbox-option"><input type="checkbox" id="showUPC" onchange="renderProducts()"> UPC</label>
                     <label class="checkbox-option"><input type="checkbox" id="showQOH" checked onchange="renderProducts()"> Qty on Hand</label>
                     <label class="checkbox-option"><input type="checkbox" id="showSize" checked onchange="renderProducts()"> Size</label>
                     <label class="checkbox-option"><input type="checkbox" id="showLot" checked onchange="renderProducts()"> Case Pack</label>
+                    <label class="checkbox-option"><input type="checkbox" id="showCategory" checked onchange="renderProducts()"> Category</label>
                 </div>
             </div>
 
@@ -828,8 +826,126 @@
         let allProducts = [];
         let filteredProducts = [];
         let order = {};
-        let currentImagePath = '../images/';
+        let currentImagePath = 'Holiday Basics Images/';
         let currentImageExt = '.jpg';
+
+        // Utility Functions
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            if (lines.length < 2) return [];
+            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+            const products = [];
+            for (let i = 1; i < lines.length; i++) {
+                const values = parseCSVLine(lines[i]);
+                if (values.length >= headers.length) {
+                    const obj = {};
+                    headers.forEach((h, idx) => { obj[h] = values[idx] || ''; });
+                    products.push(obj);
+                }
+            }
+            return products;
+        }
+
+        function parseCSVLine(line) {
+            const values = [];
+            let current = '';
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    values.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            values.push(current.trim());
+            return values;
+        }
+
+        function loadProductImage(el, style, basePath, ext) {
+            const imgUrl = `${basePath}${style}${ext}`;
+            const img = new Image();
+            img.onload = function() {
+                el.style.backgroundImage = `url('${imgUrl}')`;
+                el.classList.add('has-image');
+            };
+            img.onerror = function() {
+                el.classList.remove('has-image');
+            };
+            img.src = imgUrl;
+        }
+
+        function applyFilters(products, filters) {
+            return products.filter(product => {
+                return filters.every(f => {
+                    const val = String(product[f.field] || '').toLowerCase();
+                    const filterVal = f.value.toLowerCase();
+                    switch (f.operator) {
+                        case 'contains': return val.includes(filterVal);
+                        case 'equals': return val === filterVal;
+                        case 'starts': return val.startsWith(filterVal);
+                        case 'gt': return parseFloat(val) > parseFloat(filterVal);
+                        case 'lt': return parseFloat(val) < parseFloat(filterVal);
+                        case 'gte': return parseFloat(val) >= parseFloat(filterVal);
+                        case 'lte': return parseFloat(val) <= parseFloat(filterVal);
+                        default: return true;
+                    }
+                });
+            });
+        }
+
+        function sortData(data, field, order) {
+            return [...data].sort((a, b) => {
+                let aVal = a[field] || '';
+                let bVal = b[field] || '';
+                if (!isNaN(parseFloat(aVal)) && !isNaN(parseFloat(bVal))) {
+                    aVal = parseFloat(aVal);
+                    bVal = parseFloat(bVal);
+                }
+                if (aVal < bVal) return order === 'asc' ? -1 : 1;
+                if (aVal > bVal) return order === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        function groupData(data, field) {
+            const groups = {};
+            data.forEach(item => {
+                const key = item[field] || 'Other';
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(item);
+            });
+            return groups;
+        }
+
+        function formatPrice(price) {
+            const num = parseFloat(price);
+            return isNaN(num) ? '0.00' : num.toFixed(2);
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        function showToast(message, type = 'info') {
+            let toast = document.querySelector('.toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.className = 'toast';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             // Check URL params for catalog selection
@@ -866,22 +982,29 @@
             try {
                 const select = document.getElementById('dataSource');
                 const selectedOption = select.options[select.selectedIndex];
-                currentImagePath = selectedOption.dataset.images || '../images/';
+                currentImagePath = selectedOption.dataset.images || 'Holiday Basics Images/';
                 currentImageExt = selectedOption.dataset.ext || '.jpg';
 
                 const response = await fetch(select.value);
-                const text = await response.text();
 
                 // Check again after async fetch in case customer mode started
                 if (customerMode) return;
 
-                allProducts = parseCSV(text);
+                // Handle JSON or CSV based on file extension
+                if (select.value.endsWith('.json')) {
+                    allProducts = await response.json();
+                } else {
+                    const text = await response.text();
+                    allProducts = parseCSV(text);
+                }
+
                 allProducts.forEach(p => { if (p.DESC) p.BRAND = p.DESC.split(' ')[0]; });
                 filteredProducts = [...allProducts];
                 order = {}; // Clear order when switching catalogs
                 renderProducts();
                 showToast(`Loaded ${allProducts.length} products from ${selectedOption.text}`, 'success');
             } catch (err) {
+                console.error('Error loading data:', err);
                 showToast('Error loading data', 'error');
             }
         }
@@ -902,10 +1025,10 @@
         const FILTER_FIELDS = [
             { id: 'STYLE', label: 'Style #' },
             { id: 'DESC', label: 'Description' },
-            { id: 'VENDOR_ID', label: 'Vendor ID' },
             { id: 'CATEGORY', label: 'Category' },
+            { id: 'CATEGORY_CODE', label: 'Category Code' },
             { id: 'UPC_SKU_2', label: 'UPC' },
-            { id: 'PRICE_CS', label: 'Case Price' },
+            { id: 'LOT', label: 'Case Pack' },
             { id: 'QOH_CASES', label: 'Qty on Hand' }
         ];
 
@@ -978,12 +1101,11 @@
 
             document.getElementById('productCount').textContent = products.length;
 
-            const showPrice = document.getElementById('showPrice').checked;
-            const showEachPrice = document.getElementById('showEachPrice').checked;
             const showUPC = document.getElementById('showUPC').checked;
             const showQOH = document.getElementById('showQOH').checked;
             const showSize = document.getElementById('showSize').checked;
             const showLot = document.getElementById('showLot').checked;
+            const showCategory = document.getElementById('showCategory').checked;
 
             const container = document.getElementById('productGrid');
 
@@ -997,10 +1119,10 @@
                 const groups = groupData(products, groupBy);
                 Object.keys(groups).sort().forEach(key => {
                     html += `<div class="group-divider">${key} (${groups[key].length})</div>`;
-                    groups[key].forEach(p => html += renderCard(p, showPrice, showEachPrice, showUPC, showQOH, showSize, showLot));
+                    groups[key].forEach(p => html += renderCard(p, showUPC, showQOH, showSize, showLot, showCategory));
                 });
             } else {
-                products.forEach(p => html += renderCard(p, showPrice, showEachPrice, showUPC, showQOH, showSize, showLot));
+                products.forEach(p => html += renderCard(p, showUPC, showQOH, showSize, showLot, showCategory));
             }
 
             container.innerHTML = html;
@@ -1008,20 +1130,14 @@
             updateOrderSummary();
         }
 
-        function renderCard(p, showPrice, showEachPrice, showUPC, showQOH, showSize, showLot) {
+        function renderCard(p, showUPC, showQOH, showSize, showLot, showCategory) {
             const qty = order[p.STYLE] || 0;
             let details = '';
+            if (showCategory && p.CATEGORY) details += `<div class="label">Category</div><div class="value">${p.CATEGORY}</div>`;
             if (showSize && p.SIZE) details += `<div class="label">Size</div><div class="value">${p.SIZE}</div>`;
             if (showLot && p.LOT) details += `<div class="label">Pack</div><div class="value">${p.LOT}</div>`;
             if (showUPC && p.UPC_SKU_2) details += `<div class="label">UPC</div><div class="value">${(p.UPC_SKU_2||'').replace("'","")}</div>`;
             if (showQOH) details += `<div class="label">Stock</div><div class="value">${p.QOH_CASES || 0}</div>`;
-
-            let price = '';
-            if (showPrice && p.PRICE_CS) {
-                price = `<div class="product-price">$${formatPrice(p.PRICE_CS)}`;
-                if (showEachPrice && p.PRICE_UNIT) price += ` <span class="each">($${formatPrice(p.PRICE_UNIT)}/ea)</span>`;
-                price += '</div>';
-            }
 
             return `
                 <div class="product-card ${qty > 0 ? 'has-qty' : ''}">
@@ -1034,7 +1150,6 @@
                         <div class="product-style">${p.STYLE}</div>
                         <div class="product-desc" title="${p.DESC||''}">${p.DESC||''}</div>
                         ${details ? `<div class="product-details">${details}</div>` : ''}
-                        ${price}
                         <div class="qty-control">
                             <button class="qty-btn minus" onclick="adjustQty('${p.STYLE}',-1)">−</button>
                             <input type="number" class="qty-input ${qty>0?'has-qty':''}" value="${qty}" min="0" onchange="setQty('${p.STYLE}',this.value)" onfocus="this.select()">
@@ -1110,12 +1225,11 @@
         function downloadOrder() {
             const name = document.getElementById('customerName').value || 'Unknown';
             const id = document.getElementById('customerId').value || 'N/A';
-            let csv = 'Customer Name,Customer ID,Style,Description,Quantity,Case Price,Line Total\n';
+            let csv = 'Customer Name,Customer ID,Style,Description,Category,Case Pack,Quantity,UPC\n';
             Object.keys(order).forEach(style => {
                 const p = allProducts.find(x => x.STYLE === style);
                 if (p) {
-                    const price = parseFloat(p.PRICE_CS) || 0;
-                    csv += `"${name}","${id}","${style}","${(p.DESC||'').replace(/"/g,'""')}",${order[style]},${price},${(price*order[style]).toFixed(2)}\n`;
+                    csv += `"${name}","${id}","${style}","${(p.DESC||'').replace(/"/g,'""')}","${p.CATEGORY||''}",${p.LOT||1},${order[style]},"${p.UPC_SKU_2||''}"\n`;
                 }
             });
             const blob = new Blob([csv], { type: 'text/csv' });
@@ -1247,7 +1361,7 @@
         // Customer Link Functions
         let customerMode = false;
         let customerConfig = null;
-        let customerSettings = { showPrices: true, showStock: true };
+        let customerSettings = { showStock: true };
 
         function showCustomerLinkModal() {
             document.getElementById('linkCustomerCode').value = '';
@@ -1335,7 +1449,7 @@
                         password: data.p,
                         catalog: data.cat,
                         allowedStyles: data.s,
-                        settings: { showPrices: true, showStock: true }
+                        settings: { showStock: true }
                     };
                     customerMode = true;
                     document.getElementById('passwordScreen').style.display = 'flex';
@@ -1416,12 +1530,17 @@
                 }
 
                 const selectedOption = select.options[select.selectedIndex];
-                currentImagePath = selectedOption.dataset.images || '../images/';
+                currentImagePath = selectedOption.dataset.images || 'Holiday Basics Images/';
                 currentImageExt = selectedOption.dataset.ext || '.jpg';
 
                 const response = await fetch(select.value);
-                const text = await response.text();
-                let products = parseCSV(text);
+                let products;
+                if (select.value.endsWith('.json')) {
+                    products = await response.json();
+                } else {
+                    const text = await response.text();
+                    products = parseCSV(text);
+                }
                 products.forEach(p => { if (p.DESC) p.BRAND = p.DESC.split(' ')[0]; });
 
                 // Filter to only allowed styles
@@ -1430,13 +1549,7 @@
                     products = products.filter(p => styleSet.has(p.STYLE));
                 }
 
-                // Apply settings - hide prices if not allowed
-                if (!customerSettings.showPrices) {
-                    document.getElementById('showPrice').checked = false;
-                    document.getElementById('showEachPrice').checked = false;
-                    document.getElementById('showPrice').parentElement.style.display = 'none';
-                    document.getElementById('showEachPrice').parentElement.style.display = 'none';
-                }
+                // Apply settings - hide stock if not allowed
                 if (!customerSettings.showStock) {
                     document.getElementById('showQOH').checked = false;
                     document.getElementById('showQOH').parentElement.style.display = 'none';
