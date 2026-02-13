@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liberty Distributors - Order Taking</title>
-    <script src="../js/shared_utils.js"></script>
+    <title>Holiday Basics - Order Taking</title>
+    <script src="js/shared_utils.js"></script>
     <style>
         :root {
             --primary: #1b3a6d;
@@ -735,9 +735,7 @@
                     <div class="form-group">
                         <label class="form-label">Select Catalog</label>
                         <select id="dataSource" class="form-select" onchange="loadData()">
-                            <option value="../data/products.csv" data-images="../images/" data-ext=".jpg" data-catalog="main">Main Products</option>
-                            <option value="../data/french_products.csv" data-images="../images/" data-ext=".jpg" data-catalog="french">French Products</option>
-                            <option value="../data/nl_products.csv" data-images="../images/" data-ext=".jpg" data-catalog="nl">NL</option>
+                            <option value="data/products.csv" data-images="images/" data-ext=".jpg" data-catalog="main">Holiday Basics Products</option>
                         </select>
                     </div>
                     <div class="form-group" style="margin-top:0.4rem;">
@@ -771,18 +769,16 @@
                         <select id="groupBy" class="form-select" onchange="renderProducts()">
                             <option value="">No Grouping</option>
                             <option value="BRAND">Brand</option>
-                            <option value="PARENT_CATEGORY">Parent Category</option>
-                            <option value="SUBCATEGORY" selected>Subcategory</option>
+                            <option value="CATEGORY">Category</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Sort By</label>
                         <select id="sortBy" class="form-select" onchange="renderProducts()">
                             <option value="">No Sorting</option>
-                            <option value="STYLE">Style</option>
+                            <option value="STYLE">Item Code</option>
                             <option value="DESC" selected>Description</option>
-                            <option value="PARENT_CATEGORY">Parent Category</option>
-                            <option value="SUBCATEGORY">Subcategory</option>
+                            <option value="CATEGORY">Category</option>
                             <option value="PRICE_CS">Price (Case)</option>
                             <option value="QOH_CASES">Quantity on Hand</option>
                         </select>
@@ -1013,6 +1009,18 @@
                 loadData();
             }
             addFilter();
+
+            // Add default filter: hide out-of-stock products (QOH > 0)
+            setTimeout(() => {
+                const rows = document.querySelectorAll('.filter-row');
+                if (rows.length > 0) {
+                    const lastRow = rows[rows.length - 1];
+                    lastRow.querySelector('.filter-field').value = 'QOH_CASES';
+                    lastRow.querySelector('.filter-operator').value = 'gt';
+                    lastRow.querySelector('.filter-value').value = '0';
+                }
+            }, 50);
+
             document.getElementById('searchInput').addEventListener('input', debounce(renderProducts, 300));
         });
 
@@ -1096,14 +1104,12 @@
         }
 
         const FILTER_FIELDS = [
-            { id: 'STYLE', label: 'Style #' },
+            { id: 'STYLE', label: 'Item Code' },
             { id: 'DESC', label: 'Description' },
-            { id: 'VENDOR_ID', label: 'Vendor ID' },
-            { id: 'PARENT_CATEGORY', label: 'Parent Category' },
-            { id: 'SUBCATEGORY', label: 'Subcategory' },
+            { id: 'CATEGORY', label: 'Category' },
             { id: 'UPC_SKU_2', label: 'UPC' },
-            { id: 'PRICE_CS', label: 'Case Price' },
-            { id: 'QOH_CASES', label: 'Qty on Hand' }
+            { id: 'QOH_CASES', label: 'Qty on Hand' },
+            { id: 'PRICE_CS', label: 'Case Price' }
         ];
 
         function addFilter() {
@@ -1253,7 +1259,7 @@
             if (showLot && p.LOT) specRows += `<tr><td>Case Pack</td><td>${p.LOT}</td></tr>`;
             if (showSize && p.SIZE) specRows += `<tr><td>Size</td><td>${p.SIZE}</td></tr>`;
             if (showUPC && p.UPC_SKU_2) specRows += `<tr><td>UPC</td><td>${(p.UPC_SKU_2||'').replace(/'/g,'')}</td></tr>`;
-            if (showCategory && (p.SUBCATEGORY || p.CATEGORY || p.BRAND)) specRows += `<tr><td>Category</td><td>${p.SUBCATEGORY || p.CATEGORY || p.BRAND || ''}</td></tr>`;
+            if (showCategory && p.CATEGORY) specRows += `<tr><td>Category</td><td>${p.CATEGORY}</td></tr>`;
 
             // Price row — unit price is primary, case price is secondary
             let priceHtml = '';
@@ -1277,11 +1283,11 @@
                     </div>` : '';
 
             // Category-based color for style badge
-            const cat = (p.PARENT_CATEGORY || p.SUBCATEGORY || p.CATEGORY || '').toLowerCase();
+            const cat = (p.CATEGORY || '').toLowerCase();
             let catClass = 'cat-default';
-            if (cat.includes('baby')) catClass = 'cat-baby';
-            else if (cat.includes('personal')) catClass = 'cat-personal';
-            else if (cat.includes('household')) catClass = 'cat-household';
+            if (cat.includes('ornament')) catClass = 'cat-baby';
+            else if (cat.includes('tree')) catClass = 'cat-personal';
+            else if (cat.includes('plush')) catClass = 'cat-household';
 
             return `
                 <div class="product-card ${qty > 0 ? 'has-qty' : ''} ${!showImages ? 'no-image' : ''} ${catClass}-card" data-style="${p.STYLE}">
@@ -1988,7 +1994,7 @@
         // Load customers and setup search on DOM ready
         loadCustomers().then(() => setupCustSearch());
 
-        // Submit Order — sends order to Liberty Distributors via Google Apps Script
+        // Submit Order — sends order to Holiday Basics via Google Apps Script
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvpJ7EDvhnUtqYPpIGjs3QL0WkuQVLVkwbD2_f6YewxbClZGuZRf5dYT7bjbt5Tda-lw/exec";
 
         function openSubmitOrder() {
@@ -2027,7 +2033,7 @@
             const typedName = document.getElementById('sigTypedName').value.trim();
             if (!typedName) { showToast('Please type your name to sign', 'error'); return; }
 
-            if (!confirm('Are you sure you want to submit this order? This will send it to Liberty Distributors.')) return;
+            if (!confirm('Are you sure you want to submit this order? This will send it to Holiday Basics.')) return;
 
             const btn = document.getElementById('confirmSubmitBtn');
             btn.disabled = true;
