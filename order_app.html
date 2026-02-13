@@ -715,7 +715,7 @@
 <body>
     <div class="header">
         <div class="header-left">
-            <a href="../index.html" class="app-home-btn">Order Form</a>
+            <a href="index.html" class="app-home-btn">Order Form</a>
             <span class="header-version">v1.8.6 - 2/06/26 1:45 PM EST</span>
         </div>
         <div class="header-right">
@@ -737,10 +737,6 @@
                         <select id="dataSource" class="form-select" onchange="loadData()">
                             <option value="data/products.csv" data-images="images/" data-ext=".jpg" data-catalog="main">Holiday Basics Products</option>
                         </select>
-                    </div>
-                    <div class="form-group" style="margin-top:0.4rem;">
-                        <label class="form-label">Upload DBF File</label>
-                        <input type="file" id="dbfUpload" accept=".dbf,.DBF" style="font-size:0.8rem;width:100%;" onchange="handleDBFUpload(this)">
                     </div>
                     <div class="form-group" style="margin-top: 10px;">
                         <button class="btn-share" onclick="copyShareLink()" style="width: 100%; padding: 8px; background: #38a169; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Copy Share Link</button>
@@ -980,7 +976,7 @@
         let allProducts = [];
         let filteredProducts = [];
         let order = {};
-        let currentImagePath = '../images/';
+        let currentImagePath = 'images/';
         let currentImageExt = '.jpg';
 
         // Pagination
@@ -1035,7 +1031,7 @@
             try {
                 const select = document.getElementById('dataSource');
                 const selectedOption = select.options[select.selectedIndex];
-                currentImagePath = selectedOption.dataset.images || '../images/';
+                currentImagePath = selectedOption.dataset.images || 'images/';
                 currentImageExt = selectedOption.dataset.ext || '.jpg';
 
                 const response = await fetch(select.value);
@@ -1048,46 +1044,14 @@
                 allProducts = parseCSV(text).filter(p => p.STYLE && String(p.STYLE).trim() && p.DESC && String(p.DESC).trim());
                 allProducts.forEach(p => { if (p.DESC) p.BRAND = p.DESC.split(' ')[0]; });
 
-                // Load live QOH + category data from QOH.DBF
-                const dbfData = await loadQohFromDBF('../');
-                const qohMap = dbfData.qoh || dbfData;
-                applyQohMap(allProducts, qohMap);
-                if (dbfData.categories) applyCategoryFromDBF(allProducts, dbfData.categories);
-
-                const categoryKey = await loadCategoryKey('../');
-                applyCategoryMapping(allProducts, categoryKey);
-
                 filteredProducts = allProducts;
                 order = {}; // Clear order when switching catalogs
                 renderProducts();
-                const qohCount = Object.keys(qohMap).length;
-                showToast(`Loaded ${allProducts.length} products from ${selectedOption.text}` + (qohCount ? ` (QOH: ${qohCount} items)` : ''), 'success');
+                showToast(`Loaded ${allProducts.length} products from ${selectedOption.text}`, 'success');
             } catch (err) {
                 document.getElementById('productGrid').innerHTML = '<div class="empty-state"><h3>Error Loading Products</h3><p style="color:#888;margin-top:0.5rem;">Check your connection and try selecting the catalog again.</p></div>';
                 showToast('Error loading data', 'error');
             }
-        }
-
-        async function handleDBFUpload(input) {
-            if (!input.files || !input.files[0]) return;
-            try {
-                const file = input.files[0];
-                allProducts = await loadDBFFile(file);
-                currentImagePath = '../images/';
-                currentImageExt = '.jpg';
-                selectDBFInDropdown('dataSource', file.name);
-
-                const categoryKey = await loadCategoryKey('../');
-                applyCategoryMapping(allProducts, categoryKey);
-
-                filteredProducts = allProducts;
-                order = {};
-                renderProducts();
-                showToast(`Loaded ${allProducts.length} products from ${file.name}`, 'success');
-            } catch (err) {
-                showToast('Error loading DBF: ' + err.message, 'error');
-            }
-            input.value = '';
         }
 
         function copyShareLink() {
@@ -1513,22 +1477,10 @@
             // Get list of product styles to include
             const styles = filteredProducts.map(p => p.STYLE);
 
-            // Get current catalog — check if it's a DBF upload
+            // Get current catalog
             const select = document.getElementById('dataSource');
             const selectedOption = select.options[select.selectedIndex];
-            const isDbfUpload = !!selectedOption.dataset.dbfUpload;
-            const catalog = isDbfUpload ? 'dbf' : (selectedOption.dataset.catalog || 'main');
-
-            // For DBF uploads, embed compact product data so the link is self-contained
-            // Format: [STYLE, DESC, PRICE_CS, LOT, QOH_CASES, SIZE, UPC, EA, CATEGORY, SKID]
-            let embeddedProducts;
-            if (isDbfUpload) {
-                embeddedProducts = filteredProducts.map(p => [
-                    p.STYLE, p.DESC, p.PRICE_CS, p.LOT, p.QOH_CASES,
-                    p.SIZE || '', p.UPC_SKU_2 || '', p.EA || 'CS.',
-                    p.CATEGORY || '', p.SKID || 0
-                ]);
-            }
+            const catalog = selectedOption.dataset.catalog || 'main';
 
             // Capture current view settings
             const lock = document.getElementById('linkLockFilters').checked;
@@ -1556,7 +1508,6 @@
                 p: password,
                 cat: catalog,
                 s: styles,
-                pd: embeddedProducts,
                 lk: lock,
                 sb: sortBy,
                 so: sortOrder,
@@ -1585,7 +1536,7 @@
             // Display results - store full URL, show shortened version
             const linkEl = document.getElementById('generatedLink');
             linkEl.dataset.fullUrl = url;
-            const shortDisplay = window.location.origin + '/tools/order_app.html#cz=...';
+            const shortDisplay = window.location.origin + window.location.pathname + '#cz=...';
             linkEl.innerHTML = '<div style="font-size:0.85rem;color:var(--accent-dark);font-weight:600;margin-bottom:4px;">' + shortDisplay + '</div>' +
                 '<div style="font-size:0.7rem;color:var(--text-muted);">Compressed URL: ' + url.length.toLocaleString() + ' characters &middot; ' + styles.length + ' products encoded</div>';
             document.getElementById('generatedLinkContainer').style.display = 'block';
@@ -1612,7 +1563,6 @@
                 password: data.p,
                 catalog: data.cat,
                 allowedStyles: data.s,
-                embeddedProducts: data.pd || null,
                 settings: { showPrices: true, showStock: true },
                 locked: data.lk || false,
                 sortBy: data.sb || '',
@@ -1661,7 +1611,7 @@
             const customerCode = urlParams.get('customer');
             if (customerCode) {
                 try {
-                    const response = await fetch(`../data/customers/${customerCode}.json`);
+                    const response = await fetch(`data/customers/${customerCode}.json`);
                     if (!response.ok) throw new Error('Config not found');
                     customerConfig = await response.json();
                     customerMode = true;
@@ -1731,60 +1681,20 @@
             try {
                 // Set catalog based on customer config
                 const select = document.getElementById('dataSource');
-                currentImagePath = '../images/';
+                currentImagePath = 'images/';
                 currentImageExt = '.jpg';
                 let products;
 
-                if (customerConfig.catalog === 'dbf') {
-                    if (customerConfig.embeddedProducts) {
-                        // Embedded product data from the link — decode compact array format
-                        // [STYLE, DESC, PRICE_CS, LOT, QOH_CASES, SIZE, UPC, EA, CATEGORY, SKID]
-                        products = customerConfig.embeddedProducts.map(r => ({
-                            STYLE: r[0], DESC: r[1], BRAND: (r[1] || '').split(' ')[0],
-                            PRICE_CS: r[2], LOT: r[3],
-                            PRICE_UNIT: r[3] > 0 ? Math.round((r[2] / r[3]) * 100) / 100 : 0,
-                            QOH_CASES: r[4], QOH_UNITS: r[4] * (r[3] || 1),
-                            SIZE: r[5], UPC_SKU_2: r[6], EA: r[7],
-                            CATEGORY: r[8], SKID: r[9]
-                        }));
-                    } else {
-                        // Legacy link without embedded data — try server sources
-                        products = [];
-                        try {
-                            const dbfResponse = await fetch('../QOH.DBF');
-                            if (dbfResponse.ok) {
-                                const buffer = await dbfResponse.arrayBuffer();
-                                const parsed = parseDBF(buffer);
-                                products = dbfToProducts(parsed.records);
-                            }
-                        } catch (e) { /* QOH.DBF unavailable */ }
-
-                        // If QOH.DBF didn't cover all allowed styles, also try CSV catalogs
-                        const styleSet = customerConfig.allowedStyles ? new Set(customerConfig.allowedStyles) : null;
-                        const matchCount = styleSet ? products.filter(p => styleSet.has(p.STYLE)).length : products.length;
-                        if (!styleSet || matchCount < styleSet.size) {
-                            for (let i = 0; i < select.options.length; i++) {
-                                const opt = select.options[i];
-                                if (opt.value && !opt.dataset.dbfUpload) {
-                                    try {
-                                        const resp = await fetch(opt.value);
-                                        if (resp.ok) {
-                                            const text = await resp.text();
-                                            const csvProducts = parseCSV(text);
-                                            csvProducts.forEach(p => { if (p.DESC) p.BRAND = p.DESC.split(' ')[0]; });
-                                            products = products.concat(csvProducts);
-                                        }
-                                    } catch (e) { /* skip */ }
-                                }
-                            }
-                            const seen = new Set();
-                            products = products.filter(p => {
-                                if (seen.has(p.STYLE)) return false;
-                                seen.add(p.STYLE);
-                                return true;
-                            });
-                        }
-                    }
+                if (customerConfig.catalog === 'dbf' && customerConfig.embeddedProducts) {
+                    // Embedded product data from the link
+                    products = customerConfig.embeddedProducts.map(r => ({
+                        STYLE: r[0], DESC: r[1], BRAND: (r[1] || '').split(' ')[0],
+                        PRICE_CS: r[2], LOT: r[3],
+                        PRICE_UNIT: r[3] > 0 ? Math.round((r[2] / r[3]) * 100) / 100 : 0,
+                        QOH_CASES: r[4], QOH_UNITS: r[4] * (r[3] || 1),
+                        SIZE: r[5], UPC_SKU_2: r[6], EA: r[7],
+                        CATEGORY: r[8], SKID: r[9]
+                    }));
                 } else {
                     for (let i = 0; i < select.options.length; i++) {
                         if (select.options[i].dataset.catalog === customerConfig.catalog) {
@@ -1793,7 +1703,7 @@
                         }
                     }
                     const selectedOption = select.options[select.selectedIndex];
-                    currentImagePath = selectedOption.dataset.images || '../images/';
+                    currentImagePath = selectedOption.dataset.images || 'images/';
                     currentImageExt = selectedOption.dataset.ext || '.jpg';
 
                     const response = await fetch(select.value);
@@ -1840,13 +1750,6 @@
                 }
 
                 allProducts = products;
-
-                // Load category data from QOH.DBF for products missing CATEGORY
-                const dbfData = await loadQohFromDBF('../');
-                if (dbfData.categories) applyCategoryFromDBF(allProducts, dbfData.categories);
-
-                const categoryKey = await loadCategoryKey('../');
-                applyCategoryMapping(allProducts, categoryKey);
 
                 // Replay filter definitions from link
                 if (customerConfig.filters && customerConfig.filters.length > 0) {
@@ -1939,7 +1842,7 @@
 
         async function loadCustomers() {
             try {
-                const response = await fetch('../data/customers.csv');
+                const response = await fetch('data/customers.csv');
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const text = await response.text();
                 customers = parseCSV(text);
