@@ -112,6 +112,12 @@ function formatPrice(price) {
     return isNaN(num) ? '0.00' : num.toFixed(2);
 }
 
+// Unload product image (for lazy loading cleanup)
+function unloadProductImage(element) {
+    element.style.backgroundImage = '';
+    element.classList.remove('has-image');
+}
+
 // Load product image and update element
 function loadProductImage(element, style, imagePath, imageExt) {
     const img = new Image();

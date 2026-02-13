@@ -4,8 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Holiday Basics - Order System</title>
-    <link rel="stylesheet" href="css/style.css">
     <style>
+        :root {
+            --primary: #1b3a6d;
+            --primary-light: #2c5282;
+            --accent: #38a169;
+            --accent-dark: #2f855a;
+            --accent-light: #c6f6d5;
+            --accent-bg: #f0fff4;
+            --bg: #f5f7fa;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --text: #2d3748;
+            --text-muted: #718096;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
         .landing-container {
             min-height: 100vh;
             display: flex;
