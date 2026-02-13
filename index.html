@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holiday Basics - Order System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .landing-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent) 100%);
+            padding: 2rem;
+        }
+
+        .landing-card {
+            background: white;
+            border-radius: 16px;
+            padding: 3rem;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .landing-title {
+            font-size: 2.5rem;
+            color: var(--accent-dark);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .landing-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .landing-description {
+            color: var(--text);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .landing-button {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: var(--accent);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin: 0.5rem;
+        }
+
+        .landing-button:hover {
+            background: var(--accent-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);
+        }
+
+        .landing-button.secondary {
+            background: var(--primary);
+        }
+
+        .landing-button.secondary:hover {
+            background: var(--primary-light);
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+            text-align: left;
+        }
+
+        .feature {
+            padding: 1rem;
+            background: var(--bg);
+            border-radius: 8px;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            color: var(--accent-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="landing-container">
+        <div class="landing-card">
+            <h1 class="landing-title">Holiday Basics</h1>
+            <p class="landing-subtitle">Professional Order Management System</p>
+
+            <p class="landing-description">
+                Welcome to the Holiday Basics order management system. Browse our catalog,
+                create orders, and manage your inventory with our intuitive interface.
+            </p>
+
+            <div style="margin-bottom: 2rem;">
+                <a href="order_app.html" class="landing-button">Open Order System</a>
+            </div>
+
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-title">Product Catalog</div>
+                    <div class="feature-desc">Browse and search through our complete product inventory</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-title">Smart Filtering</div>
+                    <div class="feature-desc">Advanced filters to find exactly what you need</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-title">Order Management</div>
+                    <div class="feature-desc">Easy-to-use interface for creating and managing orders</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-title">Export Orders</div>
+                    <div class="feature-desc">Download orders as CSV for easy processing</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
